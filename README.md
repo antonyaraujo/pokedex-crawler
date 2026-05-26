@@ -38,7 +38,7 @@ poke-crawler/
 ├── storage.py       # Persistência dos dados em JSON
 ├── pokeTypes.py     # Dataclasses: Pokemon, BaseStats, Evolution, Ability
 ├── pokemons.json    # Saída gerada com os dados dos Pokémons
-└── output/          # Imagens baixadas de cada Pokémon
+└── src/images          # Imagens baixadas de cada Pokémon
 ```
 
 ---
@@ -108,10 +108,10 @@ Isso garante eficiência sem sobrecarregar o servidor da Bulbapedia.
 
 ## 📚 Bibliotecas Utilizadas
 
-| Biblioteca | Motivo da escolha |
-|---|---|
-| `aiohttp` | Cliente HTTP assíncrono, ideal para crawling concorrente sem overhead de threads |
-| `beautifulsoup4` | API simples e robusta para navegação em árvores HTML com seletores CSS e busca por atributos |
-| `aiofiles` | Escrita de arquivos não-bloqueante, mantendo o loop de eventos livre durante o salvamento de imagens |
-| `dataclasses` | Estruturas de dados tipadas, limpas e serializáveis com `asdict` sem boilerplate |
-| `asyncio` | Concorrência nativa do Python para I/O-bound tasks, sem necessidade de bibliotecas externas |
+| Biblioteca       | Motivo da escolha                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| `aiohttp`        | Cliente HTTP assíncrono, ideal para crawling concorrente sem overhead de threads                     |
+| `beautifulsoup4` | API simples e robusta para navegação em árvores HTML com seletores CSS e busca por atributos         |
+| `aiofiles`       | Escrita de arquivos não-bloqueante, mantendo o loop de eventos livre durante o salvamento de imagens |
+| `dataclasses`    | Estruturas de dados tipadas, limpas e serializáveis com `asdict` sem boilerplate                     |
+| `asyncio`        | Concorrência nativa do Python para I/O-bound tasks, sem necessidade de bibliotecas externas          |

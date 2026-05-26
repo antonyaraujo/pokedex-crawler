@@ -8,8 +8,7 @@ from pathlib import Path
 from typing import Sequence
 
 logger = logging.getLogger(__name__)
-IMAGES_DIR = Path("images")
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path("src/images")
 
 HEADERS = {
     "User-Agent": (
@@ -41,9 +40,11 @@ async def parse_pokemon(soup: BeautifulSoup) -> Pokemon:
         connector = aiohttp.TCPConnector(limit=CONCURRENCY)
         async with aiohttp.ClientSession(connector=connector) as session:
             await download_image(session, pokemon.image_path, OUTPUT_DIR / f"{pokemon.name}.png")
-        local_path = f"/output/{pokemon.name}.png"
+        local_path = f"src/images/{pokemon.name}.png"
         pokemon.image_path = local_path
 
+    logger.info("Parsed Pokémon: %s (National #%d)", pokemon.name, pokemon.national_number)
+    logger.debug("Details: %s", pokemon)
     return pokemon
 
 ## Gets Pokemon name from the soup and fills the pokemon object with it.
