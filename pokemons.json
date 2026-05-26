@@ -1,0 +1,241 @@
+[
+  {
+    "name": "Raichu",
+    "national_number": 26,
+    "category": "Mouse Pokémon",
+    "types": [
+      "Electric"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 90,
+      "defense": 55,
+      "sp_atk": 90,
+      "sp_def": 80,
+      "speed": 100
+    },
+    "evolution": {
+      "previous": "Pikachu",
+      "next": null
+    },
+    "abilities": [
+      {
+        "name": "Static",
+        "category": "Raichu"
+      },
+      {
+        "name": "Surge Surfer",
+        "category": "Alolan Raichu"
+      },
+      {
+        "name": "Lightning Rod",
+        "category": "Raichu Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Raichu.png"
+  },
+  {
+    "name": "Pikachu",
+    "national_number": 25,
+    "category": "Mouse Pokémon",
+    "types": [
+      "Electric"
+    ],
+    "stats": {
+      "hp": 35,
+      "attack": 55,
+      "defense": 30,
+      "sp_atk": 50,
+      "sp_def": 40,
+      "speed": 90
+    },
+    "evolution": {
+      "previous": "Pichu",
+      "next": "Raichu"
+    },
+    "abilities": [
+      {
+        "name": "Static",
+        "category": ""
+      },
+      {
+        "name": "Lightning Rod",
+        "category": "Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Pikachu.png"
+  },
+  {
+    "name": "Pichu",
+    "national_number": 172,
+    "category": "Tiny Mouse Pokémon",
+    "types": [
+      "Electric"
+    ],
+    "stats": {
+      "hp": 20,
+      "attack": 40,
+      "defense": 15,
+      "sp_atk": 35,
+      "sp_def": 35,
+      "speed": 60
+    },
+    "evolution": {
+      "previous": null,
+      "next": "Pikachu"
+    },
+    "abilities": [
+      {
+        "name": "Static",
+        "category": ""
+      },
+      {
+        "name": "Lightning Rod",
+        "category": "Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Pichu.png"
+  },
+  {
+    "name": "Bulbasaur",
+    "national_number": 1,
+    "category": "Seed Pokémon",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "stats": {
+      "hp": 45,
+      "attack": 49,
+      "defense": 49,
+      "sp_atk": 65,
+      "sp_def": 65,
+      "speed": 45
+    },
+    "evolution": {
+      "previous": null,
+      "next": "Ivysaur"
+    },
+    "abilities": [
+      {
+        "name": "Overgrow",
+        "category": ""
+      },
+      {
+        "name": "Chlorophyll",
+        "category": "Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Bulbasaur.png"
+  },
+  {
+    "name": "Ivysaur",
+    "national_number": 2,
+    "category": "Seed Pokémon",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 62,
+      "defense": 63,
+      "sp_atk": 80,
+      "sp_def": 80,
+      "speed": 60
+    },
+    "evolution": {
+      "previous": "Bulbasaur",
+      "next": "Venusaur"
+    },
+    "abilities": [
+      {
+        "name": "Overgrow",
+        "category": ""
+      },
+      {
+        "name": "Chlorophyll",
+        "category": "Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Ivysaur.png"
+  },
+  {
+    "name": "Ponyta",
+    "national_number": 77,
+    "category": "Fire Horse PokémonUnique Horn Pokémon",
+    "types": [
+      "Fire"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 85,
+      "defense": 55,
+      "sp_atk": 65,
+      "sp_def": 65,
+      "speed": 90
+    },
+    "evolution": {
+      "previous": null,
+      "next": "Rapidash"
+    },
+    "abilities": [
+      {
+        "name": "Run Away",
+        "category": "Ponyta"
+      },
+      {
+        "name": "Run Away",
+        "category": "Galarian Ponyta"
+      },
+      {
+        "name": "Flame Body",
+        "category": "Ponyta Hidden Ability"
+      },
+      {
+        "name": "Anticipation",
+        "category": "Galarian Ponyta Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Ponyta.png"
+  },
+  {
+    "name": "Rapidash",
+    "national_number": 78,
+    "category": "Fire Horse PokémonUnique Horn Pokémon",
+    "types": [
+      "Fire"
+    ],
+    "stats": {
+      "hp": 65,
+      "attack": 100,
+      "defense": 70,
+      "sp_atk": 80,
+      "sp_def": 80,
+      "speed": 105
+    },
+    "evolution": {
+      "previous": "Ponyta",
+      "next": null
+    },
+    "abilities": [
+      {
+        "name": "Run Away",
+        "type": "Rapidash"
+      },
+      {
+        "name": "Run Away",
+        "type": "Galarian Rapidash"
+      },
+      {
+        "name": "Flame Body",
+        "type": "Rapidash Hidden Ability"
+      },
+      {
+        "name": "Anticipation",
+        "type": "Galarian Rapidash Hidden Ability"
+      }
+    ],
+    "image_path": "/output/Rapidash.png"
+  }
+]
