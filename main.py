@@ -13,6 +13,7 @@ app = FastAPI(
 
 # Caminho do arquivo JSON definido nos seus scripts
 JSON_PATH = Path("pokemons.json")
+TXT_PATH = Path("pokemons.txt")  # Novo caminho para o arquivo de texto na nuvem
 
 # -----------------------------------------------------------------------------
 # 1. EXECUTAR CRAWLER POR POKÉMON (Retorna o objeto completo)
@@ -100,47 +101,28 @@ def delete_pokemon(name: str):
         "total_restante": len(lista_filtrada)
     }
 
-def obter_nomes_do_txt(caminho_arquivo: str | Path = "pokemons.txt") -> list[str]:
-    caminho = Path(caminho_arquivo)
-    try:
-        with caminho.open("r", encoding="utf-8") as arquivo:
-            # Lê cada linha, remove espaços/quebras de linha (\n) e ignora linhas vazias
-            return [linha.strip() for linha in arquivo if linha.strip()]
-    except FileNotFoundError:
-        print(f"Aviso: O arquivo '{caminho}' não foi encontrado. Retornando lista vazia.")
-        return []
-
-import requests
-from pathlib import Path
-
-def sincronizar_txt_com_api(txt_path="pokemons.txt", api_url="http://127.0.0.1:8000"):
-    caminho = Path(txt_path)
-    if not caminho.exists():
-        print(f"Erro: Arquivo '{txt_path}' não foi encontrado para leitura.")
-        return
-    
-    # 1. Extrai a lista de strings do arquivo TXT
-    with caminho.open("r", encoding="utf-8") as arquivo:
-        nomes = [linha.strip() for linha in arquivo if linha.strip()]
+# -----------------------------------------------------------------------------
+# NOVA ROTA: OBTENER LISTA DE NOMES DO TXT NA NUVEM
+# -----------------------------------------------------------------------------
+@app.get("/pokemons/lista-txt", summary="Retorna os nomes do arquivo pokemons.txt como um array de strings")
+def obter_lista_do_txt():
+    # TXT_PATH deve estar definido apontando para Path("pokemons.txt")
+    if not TXT_PATH.exists():
+        raise HTTPException(
+            status_code=404, 
+            detail="O arquivo 'pokemons.txt' não foi encontrado no servidor do Render."
+        )
         
-    if not nomes:
-        print("O arquivo TXT está vazio. Nada para enviar.")
-        return
-        
-    # 2. Formata os nomes em uma única string separada por vírgula
-    nomes_query = ",".join(nomes)
-    
-    # 3. Dispara a requisição POST para o servidor
-    print(f"Enviando {len(nomes)} pokémons para o Crawler na API...")
     try:
-        response = requests.post(f"{api_url}/pokemons/crawl", params={"names": nomes_query})
-        if response.status_code == 200:
-            print("Sucesso na execução! Resposta da API:", response.json())
-        else:
-            print(f"Falha na API (Status {response.status_code}):", response.text)
-    except requests.exceptions.ConnectionError:
-        print("Não foi possível conectar à API. O servidor está rodando?")
-
-# Execução do utilitário de envio
-if __name__ == "__main__":
-    sincronizar_txt_com_api()
+        with TXT_PATH.open("r", encoding="utf-8") as arquivo:
+            # Lê cada linha, limpa os espaços vazios (\n) e ignora linhas que estejam em branco
+            lista_nomes = [linha.strip() for linha in arquivo if linha.strip()]
+            
+        # Retorna diretamente o array de strings Puro
+        return lista_nomes
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao ler o arquivo de texto no servidor: {str(e)}"
+        )
