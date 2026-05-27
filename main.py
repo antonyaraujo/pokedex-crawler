@@ -104,7 +104,7 @@ def delete_pokemon(name: str):
 # -----------------------------------------------------------------------------
 # NOVA ROTA: OBTENER LISTA DE NOMES DO TXT NA NUVEM
 # -----------------------------------------------------------------------------
-@app.get("/pokemons/lista-txt", summary="Retorna os nomes do arquivo pokemons.txt como um array de strings")
+@app.get("/listAll", summary="Retorna os nomes do arquivo pokemons.txt como um array de strings")
 def obter_lista_do_txt():
     # TXT_PATH deve estar definido apontando para Path("pokemons.txt")
     if not TXT_PATH.exists():
