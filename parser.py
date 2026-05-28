@@ -201,26 +201,36 @@ def _parse_stats(soup: BeautifulSoup, pokemon: Pokemon)-> None:
     return
 
 ## Gets the Pokémon evolution from the soup and fills the pokemon object with them.
-def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon)-> None:
+## Handles linear chains (Bulbasaur), branched evolutions (Tyrogue) and
+## table-only cases where the paragraph omits names entirely (Eevee).
+def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon) -> None:
     evolution_extract = soup.find('span', {'id': 'Evolution'})
     previous = None
-    next_pokes = []  # list to support multiple evolutions (e.g. Eevee)
+    next_pokes = []
+
     if evolution_extract is not None:
         evolution_extract = evolution_extract.find_parent('h3')
-        base = evolution_extract.find_next_sibling('p')        
-        if base:        
-        # Runs all <a> links inside the paragraph [Gets all evolution line]
-            for link in base.find_all('a'):                                
-                # if there's "evolution" in the link, it means it's not a Pokémon, but the word "evolution" itself, so we ignore it
-                if "evolution" in link.get('href', '').lower():
-                    continue                                    
+        base = evolution_extract.find_next_sibling('p')
+
+        if base:
+            # Tracks whether we already entered a "evolves into" context in this paragraph.
+            # Once set, subsequent Pokémon links are treated as additional next evolutions
+            # (e.g. "evolves into either Hitmonlee, Hitmonchan or Hitmontop").
+            in_next_chain = False
+
+            # Runs all <a> links inside the paragraph [Gets all evolution line]
+            for link in base.find_all('a'):
+                href = link.get('href', '').lower()
+
+                # Skip "evolution/eeveelution" word links — they're not Pokémon pages
+                if '_(pok%c3%a9mon)' not in href and '_(pokemon)' not in href:
+                    continue
 
                 accumulated = ""
-                for sib in link.previous_siblings:                    
-                    # if find another Pokemon link, it means we've reached the previous one, so we stop looking backwards
-                    if sib.name == 'a' and "evolution" not in sib.get('href', '').lower():
+                for sib in link.previous_siblings:
+                    # If we find another Pokémon link, stop looking backwards
+                    if sib.name == 'a' and '_(pok%c3%a9mon)' in sib.get('href', '').lower():
                         break
-                                        
                     # Sum previous siblings until we find another Pokémon link or run out of siblings
                     if isinstance(sib, str):
                         accumulated = sib + accumulated
@@ -228,23 +238,63 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon)-> None:
                         accumulated = sib.get_text() + accumulated
 
                 text_string = accumulated.lower()
-                
-                ## verifies if the text contains "evolves from" or "evolves into" to determine the relationship of the Pokémon in the evolution line
+
+                ## verifies if the text contains "evolves from" or "evolves into" to determine
+                ## the relationship of the Pokémon in the evolution line
                 if "evolves from" in text_string:
                     previous = link.get_text(strip=True)
-                ## it means that it's the pokemon accumulated, so we ignore it
+                    in_next_chain = False
+                ## it means that it's an intermediate in the chain (e.g. Ivysaur in Bulbasaur's page), so we skip it
                 elif "which evolves into" in text_string:
                     continue
-                ## it means that it's the next pokemon, so we append it to the list to support branched evolutions
-                elif "evolves into" in text_string or "end evolves into" in text_string:
+                ## first explicit "evolves into" — enters next-chain context
+                elif "evolves into" in text_string:
                     next_pokes.append(link.get_text(strip=True))
-    else:         
-        logger.warning("Evolution section not found for this Pokémon.")
-        previous = None
-        next_pokes = []
+                    in_next_chain = True
+                ## continuation of a branched list ("either X, [Y] or [Z]") — no "evolves into" prefix
+                elif in_next_chain:
+                    next_pokes.append(link.get_text(strip=True))
 
-    pokemon.evolution = Evolution(previous=previous, next=next_pokes)    
+        # Fallback for Pokémon whose paragraph omits evolution names entirely (e.g. Eevee).
+        # In those cases we read the evolution table from the "Game data" section instead.
+        if not next_pokes:
+            next_pokes = _parse_evolution_from_table(soup, pokemon.name)
+    else:
+        logger.warning("Evolution section not found for this Pokémon.")
+
+    pokemon.evolution = Evolution(previous=previous, next=next_pokes)
     return
+
+
+## Fallback parser: extracts next evolutions directly from the Game data evolution table.
+## Used when the Evolution section paragraph does not list the Pokémon names (e.g. Eevee).
+def _parse_evolution_from_table(soup: BeautifulSoup, current_name: str) -> list[str]:
+    evo_data_span = soup.find('span', {'id': 'Evolution_data'})
+    if evo_data_span is None:
+        logger.warning("Evolution_data table not found as fallback.")
+        return []
+
+    # The table sits right after the h3/h4 heading that wraps the span
+    heading = evo_data_span.find_parent(['h3', 'h4'])
+    if heading is None:
+        return []
+
+    table = heading.find_next_sibling('table')
+    if table is None:
+        return []
+
+    seen: set[str] = set()
+    evolutions: list[str] = []
+
+    # Collect all Pokémon links inside the table, excluding the current Pokémon itself
+    for a in table.find_all('a', href=lambda h: h and '_(pok%c3%a9mon)' in h.lower()):
+        name = a.get_text(strip=True)
+        if name and name not in seen and name.lower() != current_name.lower():
+            seen.add(name)
+            evolutions.append(name)
+
+    logger.info("Evolution fallback found %d evolution(s) for %s via table.", len(evolutions), current_name)
+    return evolutions
 
 ## Gets the Pokémon abilities from the soup and fills the pokemon object with them.
 def _parse_abilities(soup: BeautifulSoup, pokemon: Pokemon)-> None:
