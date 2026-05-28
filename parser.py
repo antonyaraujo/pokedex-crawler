@@ -239,26 +239,28 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon) -> None:
 
                 text_string = accumulated.lower()
 
-                ## verifies if the text contains "evolves from" or "evolves into" to determine
+                ## Verifies if the text contains "evolves from" or "evolves into" to determine
                 ## the relationship of the Pokémon in the evolution line
                 if "evolves from" in text_string:
                     previous = link.get_text(strip=True)
                     in_next_chain = False
-                ## it means that it's an intermediate in the chain (e.g. Ivysaur in Bulbasaur's page), so we skip it
+                ## It means that it's an intermediate in the chain (e.g. Ivysaur in Bulbasaur's page), so we skip it
                 elif "which evolves into" in text_string:
                     continue
-                ## first explicit "evolves into" — enters next-chain context
+                ## First explicit "evolves into" — enters next-chain context
                 elif "evolves into" in text_string:
                     next_pokes.append(link.get_text(strip=True))
                     in_next_chain = True
-                ## continuation of a branched list ("either X, [Y] or [Z]") — no "evolves into" prefix
+                ## Continuation of a branched list ("either X, [Y] or [Z]") — no "evolves into" prefix
                 elif in_next_chain:
                     next_pokes.append(link.get_text(strip=True))
 
-        # Fallback for Pokémon whose paragraph omits evolution names entirely (e.g. Eevee).
-        # In those cases we read the evolution table from the "Game data" section instead.
-        if not next_pokes:
+        # --- FIX HERE ---
+        # Only trigger table fallback if NO previous evolution was found AND next_pokes is empty (e.g., Eevee case).
+        # This prevents final evolution forms (like Charizard) from mistakenly fetching earlier stages from the table.
+        if not next_pokes and not previous:
             next_pokes = _parse_evolution_from_table(soup, pokemon.name)
+            
     else:
         logger.warning("Evolution section not found for this Pokémon.")
 
@@ -285,11 +287,24 @@ def _parse_evolution_from_table(soup: BeautifulSoup, current_name: str) -> list[
 
     seen: set[str] = set()
     evolutions: list[str] = []
+    
+    # --- TABLE LOGIC FIX ---
+    # We should only start collecting evolutions AFTER we pass the current Pokémon link in the table structure.
+    found_current = False
 
-    # Collect all Pokémon links inside the table, excluding the current Pokémon itself
+    # Collect all Pokémon links inside the table
     for a in table.find_all('a', href=lambda h: h and '_(pok%c3%a9mon)' in h.lower()):
         name = a.get_text(strip=True)
-        if name and name not in seen and name.lower() != current_name.lower():
+        if not name:
+            continue
+            
+        # If we find the current Pokémon, we flag it so we can start collecting subsequent stages
+        if name.lower() == current_name.lower():
+            found_current = True
+            continue
+            
+        # If the flag is active, this Pokémon comes later in the evolution chain
+        if found_current and name not in seen:
             seen.add(name)
             evolutions.append(name)
 
