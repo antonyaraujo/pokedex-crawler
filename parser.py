@@ -248,7 +248,7 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon) -> None:
                 elif "which evolves into" in text_string:
                     continue
                 ## First explicit "evolves into" — enters next-chain context
-                elif "evolves into" in text_string:
+                elif "evolves into" in text_string or "evolve into" in text_string:
                     next_pokes.append(link.get_text(strip=True))
                     in_next_chain = True
                 ## Continuation of a branched list ("either X, [Y] or [Z]") — no "evolves into" prefix
@@ -256,9 +256,10 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon) -> None:
                     next_pokes.append(link.get_text(strip=True))
 
         # --- FIX HERE ---
-        # Only trigger table fallback if NO previous evolution was found AND next_pokes is empty (e.g., Eevee case).
-        # This prevents final evolution forms (like Charizard) from mistakenly fetching earlier stages from the table.
-        if not next_pokes and not previous:
+        # If no valid next evolutions were extracted from the text (like Eevee, where the paragraph 
+        # mentions "evolve into" but the actual links inside are skipped by the href filter),
+        # we safely fall back to the evolution table.
+        if not next_pokes:
             next_pokes = _parse_evolution_from_table(soup, pokemon.name)
             
     else:
@@ -287,8 +288,7 @@ def _parse_evolution_from_table(soup: BeautifulSoup, current_name: str) -> list[
 
     seen: set[str] = set()
     evolutions: list[str] = []
-    
-    # --- TABLE LOGIC FIX ---
+        
     # We should only start collecting evolutions AFTER we pass the current Pokémon link in the table structure.
     found_current = False
 
