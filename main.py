@@ -2,127 +2,128 @@ import asyncio
 from pathlib import Path
 from fastapi import FastAPI, Query, HTTPException
 
-# Importando as funções utilitárias dos seus arquivos originais
+# Importing utility functions from their original files
 from crawler import crawl, get_pokemons, pokemon_to_dict
 from storage import save_json
 
 app = FastAPI(
     title="PokeCrawler API",
-    description="API para buscar, listar e gerenciar Pokémons localmente"
+    description="API to search, list, and manage Pokémon locally"
 )
 
-# Caminho do arquivo JSON definido nos seus scripts
+# JSON file path defined in your scripts
 JSON_PATH = Path("pokemons.json")
-TXT_PATH = Path("pokemons.txt")  # Novo caminho para o arquivo de texto na nuvem
+TXT_PATH = Path("pokemons.txt")  # New path for the cloud text file
 
 # -----------------------------------------------------------------------------
-# 1. EXECUTAR CRAWLER POR POKÉMON (Retorna o objeto completo)
+# 1. RUN CRAWLER BY POKÉMON (Returns the full object)
 # -----------------------------------------------------------------------------
-@app.post("/pokemons/crawl", summary="Executa o crawler para novos pokémons e retorna os objetos")
+@app.post("/pokemons/crawl", summary="Runs the crawler for new Pokémon and returns the objects")
 async def trigger_crawler(
-    names: str = Query(..., description="Nomes dos pokémons separados por vírgula. Ex: Pikachu, Charizard")
+    names: str = Query(..., description="Pokémon names separated by commas. E.g.: Pikachu, Charizard")
 ):
-    # Transforma a string recebida em uma lista de nomes limpos
-    lista_nomes = [name.strip() for name in names.split(",") if name.strip()]
+    # Transforms the received string into a list of cleaned names
+    name_list = [name.strip() for name in names.split(",") if name.strip()]
     
-    if not lista_nomes:
-        raise HTTPException(status_code=400, detail="Por favor, forneça ao menos um nome válido.")
+    if not name_list:
+        raise HTTPException(status_code=400, detail="Please provide at least one valid name.")
     
-    # Executa o crawler original em uma thread separada para não travar o FastAPI
-    await asyncio.to_thread(crawl, lista_nomes)
+    # Runs the original crawler in a separate thread so it doesn't block FastAPI
+    await asyncio.to_thread(crawl, name_list)
     
-    # Carrega a lista atualizada de pokémons do arquivo JSON
-    lista_atualizada = get_pokemons(JSON_PATH)
+    # Loads the updated list of Pokémon from the JSON file
+    updated_list = get_pokemons(JSON_PATH)
     
-    # Filtra e transforma em dicionário apenas os Pokémons que foram solicitados nesta requisição
-    resultado_pokemons = []
-    nomes_solicitados_lower = [n.lower() for n in lista_nomes]
+    # Filters and converts to a dictionary only the Pokémon requested in this request
+    pokemon_results = []
+    requested_names_lower = [n.lower() for n in name_list]
     
-    for poke in lista_atualizada:
-        if poke.name.lower() in nomes_solicitados_lower:
-            resultado_pokemons.append(pokemon_to_dict(poke))
+    for poke in updated_list:
+        if poke.name.lower() in requested_names_lower:
+            pokemon_results.append(pokemon_to_dict(poke))
             
     return {
-        "status": "Sucesso",
-        "mensagem": "Crawler finalizado. Abaixo estão os dados dos pokémons solicitados.",
-        "pokemons": resultado_pokemons
+        "status": "Success",
+        "message": "Crawler finished. Below are the requested Pokémon data.",
+        "pokemons": pokemon_results
     }
 
 
 # -----------------------------------------------------------------------------
-# 2. PEGAR TODOS OS POKÉMONS JÁ EXISTENTES NO JSON
+# 2. GET ALL EXISTING POKÉMON FROM JSON
 # -----------------------------------------------------------------------------
-@app.get("/pokemons", summary="Lista todos os pokémons salvos no arquivo JSON")
+@app.get("/pokemons", summary="Lists all Pokémon saved in the JSON file")
 def list_all_pokemons():
-    lista_pokes = get_pokemons(JSON_PATH)
-    return [pokemon_to_dict(p) for p in lista_pokes]
+    poke_list = get_pokemons(JSON_PATH)
+    return [pokemon_to_dict(p) for p in poke_list]
 
 
 # -----------------------------------------------------------------------------
-# 3. NOVA ROTA: PEGAR UM POKÉMON ESPECÍFICO PELO NOME
+# 3. NEW ROUTE: GET A SPECIFIC POKÉMON BY NAME
 # -----------------------------------------------------------------------------
-@app.get("/pokemons/{name}", summary="Retorna o objeto JSON de um pokémon específico pelo nome")
+@app.get("/pokemons/{name}", summary="Returns the JSON object of a specific Pokémon by name")
 def get_single_pokemon(name: str):
-    lista_pokes = get_pokemons(JSON_PATH)
+    poke_list = get_pokemons(JSON_PATH)
     
-    # Procura o pokémon correspondente na lista (ignorando maiúsculas/minúsculas)
-    for poke in lista_pokes:
+    # Searches for the corresponding Pokémon in the list (case-insensitive)
+    for poke in poke_list:
         if poke.name.lower() == name.lower():
             return pokemon_to_dict(poke)
             
-    # Caso não encontre, gera uma exceção HTTP 404
+    # If not found, raises an HTTP 404 exception
     raise HTTPException(
         status_code=404, 
-        detail=f"O Pokémon '{name}' não foi encontrado no arquivo de registros."
+        detail=f"The Pokémon '{name}' was not found in the records file."
     )
 
 
 # -----------------------------------------------------------------------------
-# 4. DELETAR UM POKÉMON DO JSON
+# 4. DELETE A POKÉMON FROM JSON
 # -----------------------------------------------------------------------------
-@app.delete("/pokemons/{name}", summary="Deleta um pokémon do arquivo JSON pelo nome")
+@app.delete("/pokemons/{name}", summary="Deletes a Pokémon from the JSON file by name")
 def delete_pokemon(name: str):
-    lista_pokes = get_pokemons(JSON_PATH)
-    tamanho_original = len(lista_pokes)
+    poke_list = get_pokemons(JSON_PATH)
+    original_size = len(poke_list)
     
-    lista_filtrada = [p for p in lista_pokes if p.name.lower() != name.lower()]
+    filtered_list = [p for p in poke_list if p.name.lower() != name.lower()]
     
-    if len(lista_filtrada) == tamanho_original:
+    if len(filtered_list) == original_size:
         raise HTTPException(
             status_code=404, 
-            detail=f"O Pokémon '{name}' não foi encontrado no arquivo JSON."
+            detail=f"The Pokémon '{name}' was not found in the JSON file."
         )
     
-    save_json(lista_filtrada, JSON_PATH)
+    save_json(filtered_list, JSON_PATH)
     
     return {
-        "status": "Sucesso",
-        "mensagem": f"O Pokémon '{name}' foi removido com sucesso do arquivo.",
-        "total_restante": len(lista_filtrada)
+        "status": "Success",
+        "message": f"The Pokémon '{name}' was successfully removed from the file.",
+        "remaining_total": len(filtered_list)
     }
 
+
 # -----------------------------------------------------------------------------
-# NOVA ROTA: OBTENER LISTA DE NOMES DO TXT NA NUVEM
+# NEW ROUTE: GET NAME LIST FROM TXT IN THE CLOUD
 # -----------------------------------------------------------------------------
-@app.get("/listAll", summary="Retorna os nomes do arquivo pokemons.txt como um array de strings")
-def obter_lista_do_txt():
-    # TXT_PATH deve estar definido apontando para Path("pokemons.txt")
+@app.get("/listAll", summary="Returns the names from the pokemons.txt file as a string array")
+def get_list_from_txt():
+    # TXT_PATH must be defined pointing to Path("pokemons.txt")
     if not TXT_PATH.exists():
         raise HTTPException(
             status_code=404, 
-            detail="O arquivo 'pokemons.txt' não foi encontrado no servidor do Render."
+            detail="The file 'pokemons.txt' was not found on the Render server."
         )
         
     try:
-        with TXT_PATH.open("r", encoding="utf-8") as arquivo:
-            # Lê cada linha, limpa os espaços vazios (\n) e ignora linhas que estejam em branco
-            lista_nomes = [linha.strip() for linha in arquivo if linha.strip()]
+        with TXT_PATH.open("r", encoding="utf-8") as file:
+            # Reads each line, cleans whitespaces (\n) and ignores blank lines
+            name_list = [line.strip() for line in file if line.strip()]
             
-        # Retorna diretamente o array de strings Puro
-        return lista_nomes
+        # Returns the raw string array directly
+        return name_list
         
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao ler o arquivo de texto no servidor: {str(e)}"
+            detail=f"Error reading the text file on the server: {str(e)}"
         )
