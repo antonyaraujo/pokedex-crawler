@@ -8,7 +8,7 @@ class Ability:
 @dataclass
 class Evolution:
     previous: str = None   # predecessor
-    next: str = None       # sucessor
+    next: list[str] = field(default_factory=list)      # sucessor
 
 
 @dataclass

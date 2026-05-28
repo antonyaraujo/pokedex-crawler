@@ -204,7 +204,7 @@ def _parse_stats(soup: BeautifulSoup, pokemon: Pokemon)-> None:
 def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon)-> None:
     evolution_extract = soup.find('span', {'id': 'Evolution'})
     previous = None
-    next_poke = None
+    next_pokes = []  # list to support multiple evolutions (e.g. Eevee)
     if evolution_extract is not None:
         evolution_extract = evolution_extract.find_parent('h3')
         base = evolution_extract.find_next_sibling('p')        
@@ -226,9 +226,6 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon)-> None:
                         accumulated = sib + accumulated
                     else:
                         accumulated = sib.get_text() + accumulated
-                
-                # Agora aplicamos a mesma lógica de validação no texto acumulado
-
 
                 text_string = accumulated.lower()
                 
@@ -238,15 +235,15 @@ def _parse_evolution(soup: BeautifulSoup, pokemon: Pokemon)-> None:
                 ## it means that it's the pokemon accumulated, so we ignore it
                 elif "which evolves into" in text_string:
                     continue
-                    ## it means that it's the next pokemon, so we save it as next evolution
+                ## it means that it's the next pokemon, so we append it to the list to support branched evolutions
                 elif "evolves into" in text_string or "end evolves into" in text_string:
-                    next_poke = link.get_text(strip=True)
+                    next_pokes.append(link.get_text(strip=True))
     else:         
         logger.warning("Evolution section not found for this Pokémon.")
         previous = None
-        next_poke = None
+        next_pokes = []
 
-    pokemon.evolution = Evolution(previous=previous, next=next_poke)    
+    pokemon.evolution = Evolution(previous=previous, next=next_pokes)    
     return
 
 ## Gets the Pokémon abilities from the soup and fills the pokemon object with them.

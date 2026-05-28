@@ -143,6 +143,13 @@ def crawl(names: list[str]):
 def pokemon_from_dict(data: Dict[str, Any]) -> Pokemon:
     stats_data = data.get("stats") or {}
     evolution_data = data.get("evolution") or {}
+    if isinstance(evolution_data, dict):
+        next_val = evolution_data.get("next")
+        if isinstance(next_val, str):
+            evolution_data["next"] = [next_val] if next_val else []
+        elif next_val is None:
+            evolution_data["next"] = []
+
     abilities_data = data.get("abilities") or []
 
     abilities = []
