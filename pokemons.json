@@ -1,3 +1,42 @@
 [
-
+  {
+    "name": "Eevee",
+    "national_number": 133,
+    "category": "Evolution Pokémon",
+    "types": [
+      "Normal"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 55,
+      "defense": 50,
+      "sp_atk": 45,
+      "sp_def": 65,
+      "speed": 55
+    },
+    "evolution": {
+      "previous": null,
+      "next": [
+        "Vaporeon",
+        "Jolteon",
+        "Flareon",
+        "Espeon",
+        "Umbreon",
+        "Leafeon",
+        "Glaceon",
+        "Sylveon"
+      ]
+    },
+    "abilities": [
+      {
+        "name": "Run Away",
+        "type": ""
+      },
+      {
+        "name": "Anticipation",
+        "type": "Hidden Ability"
+      }
+    ],
+    "image_path": "src/images/Eevee.png"
+  }
 ]

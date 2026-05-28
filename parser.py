@@ -293,7 +293,7 @@ def _parse_evolution_from_table(soup: BeautifulSoup, current_name: str) -> list[
     found_current = False
 
     # Collect all Pokémon links inside the table
-    for a in table.find_all('a', href=lambda h: h and '_(pok%c3%a9mon)' in h.lower()):
+    for a in table.find_all('a'):
         name = a.get_text(strip=True)
         if not name:
             continue
@@ -305,8 +305,10 @@ def _parse_evolution_from_table(soup: BeautifulSoup, current_name: str) -> list[
             
         # If the flag is active, this Pokémon comes later in the evolution chain
         if found_current and name not in seen:
-            seen.add(name)
-            evolutions.append(name)
+            href = a.get('href', '').lower()
+            if '_(pok%c3%a9mon)' in href or '_(pokemon)' in href:
+                seen.add(name)
+                evolutions.append(name)
 
     logger.info("Evolution fallback found %d evolution(s) for %s via table.", len(evolutions), current_name)
     return evolutions

@@ -59,15 +59,15 @@ def _print_search_results(requested_names: list[str], existing_by_name: Dict[str
         if key in fetched_by_requested:
             pokemon = fetched_by_requested[key]
             source = "crawler"
-            print(f"✔ {name}: obtained via crawler ({pokemon.name})")
+            print(f"[OK] {name}: obtained via crawler ({pokemon.name})")
         elif key in existing_by_name:
             pokemon = existing_by_name[key]
             source = "json"
-            print(f"✔ {name}: present in local JSON ({pokemon.name})")
+            print(f"[OK] {name}: present in local JSON ({pokemon.name})")
         else:
             pokemon = None
             source = "failed"
-            print(f"✖ {name}: could not be obtained")
+            print(f"[FAIL] {name}: could not be obtained")
 
         if pokemon is not None:
             item = pokemon_to_dict(pokemon)
